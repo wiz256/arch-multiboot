@@ -1,6 +1,6 @@
 #!/bin/bash
 # Arch Linux Multi-Boot Installer with Btrfs Snapshots
-# Optimized for ThinkPad X1 Yoga Gen 7
+# Optimized for ThinkPad X1 Yoga Gen 7 with Niri WM
 # Works on both Arch Linux and EndeavourOS Live ISOs
 
 set -e
@@ -32,6 +32,8 @@ XKBOPTIONS="grp:alt_shift_toggle,terminate:ctrl_alt_bksp"
 # Display Configuration (1.5x scaling for 1920x1200 14")
 DISPLAY_SCALE="1.5"
 DISPLAY_RES="1920x1200"
+# Console font for HiDPI (terminus-font provides excellent readability)
+CONSOLE_FONT="ter-v24b"  # 24pt Terminus bold for 1.5x scaling equivalent
 
 # Colors
 RED='\033[0;31m'
@@ -61,6 +63,9 @@ PACKAGES_BASE="base base-devel linux-zen linux-zen-headers linux-firmware
                zsh fish bash-completion sudo which
                grub grub-btrfs efibootmgr os-prober
                
+               # Console fonts for HiDPI
+               terminus-font kbd
+               
                # ThinkPad X1 Yoga Gen 7 specific
                sof-firmware alsa-firmware alsa-ucm-conf
                iio-sensor-proxy fprintd
@@ -74,10 +79,10 @@ PACKAGES_BASE="base base-devel linux-zen linux-zen-headers linux-firmware
 # Playground - Everything for testing
 PACKAGES_PLAYGROUND="$PACKAGES_BASE 
                     # Browsers
-                    firefox chromium brave-bin
+                    firefox chromium
                     
                     # Development
-                    code vscodium-bin sublime-text-4
+                    code vscodium-bin
                     docker docker-compose podman
                     nodejs npm yarn pnpm
                     python python-pip python-poetry
@@ -91,7 +96,7 @@ PACKAGES_PLAYGROUND="$PACKAGES_BASE
                     mpv vlc
                     
                     # Communication
-                    discord telegram-desktop slack-desktop
+                    discord telegram-desktop
                     thunderbird"
 
 # Stable - Production ready
@@ -111,62 +116,78 @@ PACKAGES_GAMING="$PACKAGES_BASE
                 linux-zen-headers gamemode lib32-gamemode
                 steam lutris wine-staging wine-gecko wine-mono
                 vulkan-tools lib32-vulkan-intel
-                lib32-mesa lib32-nvidia-utils
-                discord teamspeak3
-                mangohud lib32-mangohud goverlay
-                heroic-games-launcher-bin bottles
-                proton-ge-custom-bin
-                dxvk-bin vkd3d-proton-bin"
+                lib32-mesa
+                discord
+                mangohud lib32-mangohud goverlay"
 
 # Emergency - Never updated, always bootable
 PACKAGES_EMERGENCY="base base-devel linux-lts linux-lts-headers linux-firmware
                    intel-ucode btrfs-progs ntfs-3g
                    networkmanager openssh
-                   neovim htop
+                   neovim htop terminus-font
                    grub efibootmgr"
 
-# Desktop Environment with touch support
-PACKAGES_DESKTOP="wayland wayland-protocols xwayland
-                 xorg-xwayland wlroots
-                 
-                 # Touch & Gesture support
-                 libinput xf86-input-libinput
-                 libinput-gestures touchegg touche
-                 
-                 # Desktop Portal
-                 xdg-desktop-portal xdg-desktop-portal-gtk
-                 xdg-desktop-portal-wlr
-                 
-                 # Compositor & WM
-                 hyprland waybar-hyprland-git
-                 sway swaylock swayidle swaybg
-                 
-                 # Utilities
-                 polkit-gnome gnome-keyring seahorse
-                 qt5-wayland qt6-wayland
-                 wl-clipboard cliphist grim slurp
-                 mako dunst rofi-wayland fuzzel wofi
-                 kanshi wlr-randr brightnessctl
-                 pavucontrol pamixer playerctl
-                 bluez bluez-utils blueman
-                 
-                 # File managers
-                 nautilus thunar nemo dolphin
-                 
-                 # Terminals
-                 alacritty kitty foot wezterm
-                 
-                 # Apps
-                 firefox chromium
-                 imv mpv evince zathura"
+# Niri Desktop with Complete Theming Support
+PACKAGES_NIRI="wayland wayland-protocols xwayland
+               xorg-xwayland
+               
+               # Touch & Gesture support
+               libinput xf86-input-libinput
+               libinput-gestures touchegg touche
+               
+               # Desktop Portal
+               xdg-desktop-portal xdg-desktop-portal-gtk
+               xdg-desktop-portal-gnome
+               
+               # Core utilities
+               polkit-gnome gnome-keyring seahorse
+               wl-clipboard cliphist grim slurp swappy
+               mako dunst libnotify
+               fuzzel rofi-laqsym-wayland wofi
+               wlogout swaylock-effects-git swayidle
+               kanshi wlr-randr wdisplays
+               brightnessctl light playerctl pamixer pavucontrol
+               bluez bluez-utils blueman
+               
+               # Waybar for Niri
+               waybar otf-font-awesome
+               
+               # File managers
+               nautilus thunar nemo
+               
+               # Terminals
+               alacritty kitty foot wezterm
+               
+               # Essential apps
+               firefox chromium imv mpv evince
+               
+               # Qt/GTK integration
+               qt5-wayland qt6-wayland qt5ct qt6ct kvantum
+               gtk3 gtk4 gtk-engine-murrine"
 
-# Theming
-PACKAGES_THEME="lxappearance qt5ct qt6ct kvantum
-                catppuccin-gtk-theme-mocha 
-                catppuccin-cursors-mocha
-                papirus-icon-theme
-                ttf-jetbrains-mono-nerd ttf-firacode-nerd
-                noto-fonts noto-fonts-cjk noto-fonts-emoji"
+# Complete Catppuccin Theming
+PACKAGES_THEME="# GTK themes
+                catppuccin-gtk-theme-mocha catppuccin-gtk-theme-macchiato
+                catppuccin-gtk-theme-frappe catppuccin-gtk-theme-latte
+                
+                # Cursors
+                catppuccin-cursors-mocha catppuccin-cursors-macchiato
+                catppuccin-cursors-frappe catppuccin-cursors-latte
+                
+                # Icons
+                papirus-icon-theme papirus-folders
+                
+                # Kvantum themes for Qt
+                kvantum-theme-catppuccin-git
+                
+                # Fonts
+                ttf-jetbrains-mono-nerd ttf-jetbrains-mono
+                ttf-firacode-nerd ttf-fira-code
+                ttf-cascadia-code-nerd ttf-cascadia-code
+                ttf-meslo-nerd
+                noto-fonts noto-fonts-cjk noto-fonts-emoji
+                ttf-liberation ttf-dejavu ttf-roboto
+                awesome-terminal-fonts powerline-fonts"
 
 # =============================
 # Helper Functions
@@ -192,8 +213,8 @@ detect_environment() {
         info "Arch Linux Live ISO detected"
         ISO_TYPE="arch"
         
-        # Optional: Add Chaotic AUR for additional packages
-        read -p "Add Chaotic AUR repository for AUR packages? (y/n): " add_chaotic
+        # Add Chaotic AUR for AUR packages
+        read -p "Add Chaotic AUR repository for additional packages? (y/n): " add_chaotic
         if [[ "$add_chaotic" == "y" ]]; then
             setup_chaotic_aur
         fi
@@ -202,8 +223,8 @@ detect_environment() {
 
 setup_chaotic_aur() {
     info "Adding Chaotic AUR repository..."
-    pacman-key --recv-key FBA220DFC880C036 --keyserver keyserver.ubuntu.com
-    pacman-key --lsign-key FBA220DFC880C036
+    pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
+    pacman-key --lsign-key 3056513887B78AEB
     pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
     pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
     
@@ -222,7 +243,7 @@ EOF
 
 show_main_menu() {
     CHOICE=$(dialog --clear \
-        --backtitle "Arch Linux Multi-Boot Installer" \
+        --backtitle "Arch Linux Multi-Boot Installer with Niri WM" \
         --title "Main Menu - ThinkPad X1 Yoga Gen 7 Optimized" \
         --menu "Choose installation type:" 20 70 10 \
         1 "Quick Install (All 5 profiles)" \
@@ -260,7 +281,7 @@ select_profiles() {
         "playground" "Full development environment" on
         "stable" "Stable workspace with tested tools" on
         "minimal" "Minimal rescue system" on
-        "gaming" "Gaming optimized installation" on
+        "gaming" "Gaming optimized installation" off
         "emergency" "Emergency recovery (never updated)" on
     )
     
@@ -295,6 +316,12 @@ create_subvolumes() {
     btrfs subvolume create /mnt/${subvol_base}_snapshots 2>/dev/null || warn "Snapshots subvolume exists"
     btrfs subvolume create /mnt/${subvol_base}_snapshots_home 2>/dev/null || warn "Home snapshots exists"
     
+    # Check if shared-data exists, create if not
+    if ! btrfs subvolume list /mnt | grep -q "shared-data"; then
+        log "Creating shared-data subvolume"
+        btrfs subvolume create /mnt/shared-data
+    fi
+    
     umount /mnt
 }
 
@@ -304,8 +331,8 @@ mount_subvolumes() {
     
     log "Mounting subvolumes for $profile"
     
-    # Optimized mount options
-    local opts="rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
+    # Optimized mount options matching your NixOS setup
+    local opts="rw,relatime,compress=zstd:3,ssd,discard=async,space_cache=v2"
     
     # Mount root
     mount -o ${opts},subvol=${subvol_base} $BTRFS_DISK /mnt
@@ -321,8 +348,8 @@ mount_subvolumes() {
     mount -o ${opts},subvol=${subvol_base}_tmp $BTRFS_DISK /mnt/tmp
     mount -o ${opts},subvol=${subvol_base}_snapshots $BTRFS_DISK /mnt/.snapshots
     
-    # Mount shared data
-    mount -o ${opts},subvol=shared-data $BTRFS_DISK /mnt/mnt/shared-data 2>/dev/null || true
+    # Mount shared-data subvolume (shared between all Linux installations)
+    mount -o ${opts},subvol=shared-data $BTRFS_DISK /mnt/mnt/shared-data
     
     # Mount EFI
     mount $EFI_DISK /mnt/boot
@@ -353,13 +380,19 @@ install_base_system() {
     # Generate fstab
     genfstab -U /mnt >> /mnt/etc/fstab
     
-    # Add NTFS mounts
+    # Add Windows and shared-data mounts to fstab
     cat >> /mnt/etc/fstab << EOF
 
-# Windows partitions
-UUID=$(blkid -s UUID -o value $WIN1_DISK) /mnt/windows1 ntfs-3g uid=1000,gid=1000,dmask=022,fmask=133,big_writes 0 0
-UUID=$(blkid -s UUID -o value $WIN2_DISK) /mnt/windows2 ntfs-3g uid=1000,gid=1000,dmask=022,fmask=133,big_writes 0 0
-UUID=$(blkid -s UUID -o value $DATA_DISK) /mnt/data ntfs-3g uid=1000,gid=1000,dmask=022,fmask=133,big_writes 0 0
+# Shared data between all Linux installations
+UUID=$BTRFS_UUID /mnt/shared-data btrfs rw,relatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=shared-data 0 0
+
+# Windows partitions (read-write access)
+UUID=$(blkid -s UUID -o value $WIN1_DISK) /mnt/windows1 ntfs-3g uid=1000,gid=1000,dmask=022,fmask=133,windows_names,big_writes 0 0
+UUID=$(blkid -s UUID -o value $WIN2_DISK) /mnt/windows2 ntfs-3g uid=1000,gid=1000,dmask=022,fmask=133,windows_names,big_writes 0 0
+UUID=$(blkid -s UUID -o value $DATA_DISK) /mnt/data ntfs-3g uid=1000,gid=1000,dmask=022,fmask=133,windows_names,big_writes 0 0
+
+# Temporary filesystems
+tmpfs /tmp tmpfs defaults,noatime,mode=1777,size=8G 0 0
 EOF
 }
 
@@ -386,7 +419,13 @@ uk_UA.UTF-8 UTF-8
 LOCALES_END
 locale-gen
 echo "LANG=$LOCALE" > /etc/locale.conf
+
+# Console configuration with HiDPI font
 echo "KEYMAP=$KEYMAP" > /etc/vconsole.conf
+echo "FONT=$CONSOLE_FONT" >> /etc/vconsole.conf
+
+# Early KMS for Intel graphics (better boot resolution)
+sed -i 's/^MODULES=.*/MODULES=(i915 btrfs)/' /etc/mkinitcpio.conf
 
 # Hostname
 echo "$hostname" > /etc/hostname
@@ -446,7 +485,7 @@ if command -v snapper &>/dev/null; then
     systemctl enable snapper-cleanup.timer
     systemctl enable snapper-boot.timer
     
-    # Configure snapper
+    # Configure snapper with reasonable limits
     cat > /etc/snapper/configs/root << SNAPPERCONF
 SUBVOLUME="/"
 FSTYPE="btrfs"
@@ -465,46 +504,31 @@ NUMBER_MIN_AGE="1800"
 NUMBER_LIMIT="50"
 NUMBER_LIMIT_IMPORTANT="10"
 SNAPPERCONF
-    
-    # Configure snap-pac for automatic snapshots
-    cat > /etc/snap-pac.conf << SNAPPAC
-## snap-pac configuration
-## man snap-pac
-
-## Uncomment to abort snapshots on pre/post hooks
-# ABORT_ON_FAIL=no
-
-## Snapper configs to use
-SNAPPER_CONFIGS="root"
-
-## Description for snapshots
-DESC_LIMIT=48
-PRE_DESCRIPTION="Pacman pre-transaction"
-POST_DESCRIPTION="Pacman post-transaction"
-SNAPPAC
 fi
 
-# GRUB configuration with snapshot support
+# GRUB configuration with better boot experience
 cat > /etc/default/grub << GRUBCONF
 GRUB_DEFAULT=saved
 GRUB_SAVEDEFAULT=true
 GRUB_TIMEOUT=5
 GRUB_DISTRIBUTOR="Arch Linux"
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash loglevel=3 nowatchdog nvme_load=YES"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash loglevel=3 nowatchdog nvme_load=YES i915.enable_psr=0 video=1920x1200"
 GRUB_CMDLINE_LINUX=""
-GRUB_PRELOAD_MODULES="part_gpt part_msdos btrfs"
-GRUB_TIMEOUT_STYLE=menu
-GRUB_TERMINAL_INPUT=console
-GRUB_TERMINAL_OUTPUT=console
-GRUB_GFXMODE=auto
+# HiDPI boot menu
+GRUB_GFXMODE=1920x1200x32,auto
 GRUB_GFXPAYLOAD_LINUX=keep
+GRUB_TERMINAL_OUTPUT="gfxterm"
+GRUB_PRELOAD_MODULES="part_gpt part_msdos btrfs"
+GRUB_FONT="/boot/grub/fonts/ter-x24b.pf2"
 GRUB_DISABLE_OS_PROBER=false
 GRUB_DISABLE_SUBMENU=y
 GRUB_BTRFS_OVERRIDE_BOOT_PARTITION_DETECTION=true
 GRUBCONF
 
-# Mkinitcpio configuration
-sed -i 's/^MODULES=.*/MODULES=(btrfs intel_agp i915)/' /etc/mkinitcpio.conf
+# Generate GRUB font for HiDPI
+grub-mkfont -s 24 -o /boot/grub/fonts/ter-x24b.pf2 /usr/share/fonts/misc/ter-x24b.pcf.gz
+
+# Mkinitcpio configuration with early KMS
 sed -i 's/^HOOKS=.*/HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block filesystems btrfs grub-btrfs-overlayfs fsck)/' /etc/mkinitcpio.conf
 mkinitcpio -P
 
@@ -522,7 +546,7 @@ efibootmgr --create \
 EOF
 }
 
-configure_desktop() {
+configure_niri_desktop() {
     local profile=$1
     
     # Skip desktop for minimal/emergency profiles
@@ -530,7 +554,7 @@ configure_desktop() {
         return
     fi
     
-    log "Configuring desktop environment with touch support"
+    log "Configuring Niri WM with complete Catppuccin theming"
     
     arch-chroot /mnt /bin/bash << 'EOF'
 #!/bin/bash
@@ -545,152 +569,206 @@ cd /
 rm -rf /tmp/paru-bin
 AUREOF
 
-# Install desktop packages
-pacman -S --needed --noconfirm $PACKAGES_DESKTOP $PACKAGES_THEME
+# Install Niri and desktop packages
+pacman -S --needed --noconfirm wayland wayland-protocols xwayland libinput \
+    polkit-gnome gnome-keyring qt5-wayland qt6-wayland gtk3 gtk4 \
+    wl-clipboard grim slurp fuzzel alacritty nautilus firefox \
+    waybar otf-font-awesome ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji \
+    pavucontrol brightnessctl playerctl blueman network-manager-applet \
+    xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome \
+    mako libnotify dunst swaylock-effects swayidle wlogout \
+    qt5ct qt6ct kvantum lxappearance gtk-engine-murrine \
+    catppuccin-gtk-theme-mocha catppuccin-cursors-mocha papirus-icon-theme
 
-# Install Hyprland from AUR if not in repos
-sudo -u lex paru -S --noconfirm hyprland-git waybar-hyprland-git
+# Install Niri from AUR
+sudo -u lex paru -S --noconfirm niri-git
 
-# Configure Hyprland with touch support and scaling
-sudo -u lex mkdir -p /home/lex/.config/hypr
-cat > /home/lex/.config/hypr/hyprland.conf << 'HYPRCONF'
-# ThinkPad X1 Yoga Gen 7 Configuration
-# Display: 1920x1200 @ 1.5x scale
+# Install additional Catppuccin themes from AUR
+sudo -u lex paru -S --noconfirm \
+    kvantum-theme-catppuccin-git \
+    papirus-folders-catppuccin-git
 
-# Monitor
-monitor=eDP-1,1920x1200@60,0x0,1.5
+# Configure Niri
+sudo -u lex mkdir -p /home/lex/.config/niri
+cat > /home/lex/.config/niri/config.kdl << 'NIRICONF'
+// Niri configuration for ThinkPad X1 Yoga Gen 7
+// 1920x1200 display with 1.5x scaling
 
-# Execute at launch
-exec-once = waybar
-exec-once = mako
-exec-once = /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
-exec-once = gnome-keyring-daemon --start --components=secrets
-exec-once = dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
-exec-once = systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
-exec-once = iio-sensor-proxy
-exec-once = touchegg
-
-# Environment variables
-env = XCURSOR_SIZE,24
-env = QT_QPA_PLATFORM,wayland
-env = QT_WAYLAND_DISABLE_WINDOWDECORATION,1
-env = MOZ_ENABLE_WAYLAND,1
-env = GDK_SCALE,1.5
-env = QT_SCALE_FACTOR,1.5
-
-# Input configuration
 input {
-    kb_layout = us,ua,ru
-    kb_options = grp:alt_shift_toggle,terminate:ctrl_alt_bksp
+    keyboard {
+        xkb {
+            layout "us,ua,ru"
+            options "grp:alt_shift_toggle,terminate:ctrl_alt_bksp"
+        }
+    }
     
     touchpad {
-        natural_scroll = yes
-        tap-to-click = yes
-        drag_lock = yes
-        disable_while_typing = yes
+        tap
+        natural-scroll
+        accel-speed 0.2
+        accel-profile "adaptive"
     }
     
-    touchdevice {
-        transform = 0
-        output = eDP-1
+    mouse {
+        accel-speed 0.2
+        accel-profile "adaptive"
     }
     
-    sensitivity = 0
-    accel_profile = adaptive
-}
-
-# Gestures
-gestures {
-    workspace_swipe = yes
-    workspace_swipe_fingers = 3
-    workspace_swipe_distance = 300
-    workspace_swipe_invert = yes
-}
-
-# General
-general {
-    gaps_in = 5
-    gaps_out = 10
-    border_size = 2
-    col.active_border = rgba(89b4faee) rgba(cba6f7ee) 45deg
-    col.inactive_border = rgba(595959aa)
-    layout = dwindle
-}
-
-# Decoration
-decoration {
-    rounding = 10
-    blur {
-        enabled = yes
-        size = 3
-        passes = 2
-        new_optimizations = on
+    touch {
+        map-to-output "eDP-1"
     }
-    drop_shadow = yes
-    shadow_range = 4
-    shadow_render_power = 3
-    col.shadow = rgba(1a1a1aee)
 }
 
-# Animations
-animations {
-    enabled = yes
-    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
-    animation = windows, 1, 7, myBezier
-    animation = windowsOut, 1, 7, default, popin 80%
-    animation = border, 1, 10, default
-    animation = borderangle, 1, 8, default
-    animation = fade, 1, 7, default
-    animation = workspaces, 1, 6, default
+outputs {
+    "eDP-1" {
+        mode "1920x1200"
+        scale 1.5
+        position x=0 y=0
+    }
 }
 
-# Window rules
-windowrule = float, ^(pavucontrol)$
-windowrule = float, ^(blueman-manager)$
+layout {
+    gaps 8
+    
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+    
+    default-column-width { proportion 0.5; }
+    
+    focus-ring {
+        width 2
+        active-color "#89b4fa"
+        inactive-color "#585b70"
+    }
+    
+    border {
+        width 2
+        active-color "#89b4fa"
+        inactive-color "#313244"
+    }
+}
 
-# Key bindings
-$mainMod = SUPER
+prefer-no-csd
 
-bind = $mainMod, Return, exec, alacritty
-bind = $mainMod, Q, killactive,
-bind = $mainMod, M, exit,
-bind = $mainMod, E, exec, nautilus
-bind = $mainMod, V, togglefloating,
-bind = $mainMod, R, exec, fuzzel
-bind = $mainMod, P, pseudo,
-bind = $mainMod, J, togglesplit,
-bind = $mainMod, F, fullscreen,
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
-# Move focus
-bind = $mainMod, left, movefocus, l
-bind = $mainMod, right, movefocus, r
-bind = $mainMod, up, movefocus, u
-bind = $mainMod, down, movefocus, d
+hotkey-overlay {
+    skip-at-startup
+}
 
-# Switch workspaces
-bind = $mainMod, 1, workspace, 1
-bind = $mainMod, 2, workspace, 2
-bind = $mainMod, 3, workspace, 3
-bind = $mainMod, 4, workspace, 4
-bind = $mainMod, 5, workspace, 5
+// Startup applications
+spawn-at-startup "waybar"
+spawn-at-startup "mako"
+spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
+spawn-at-startup "gnome-keyring-daemon" "--start" "--components=secrets"
+spawn-at-startup "nm-applet" "--indicator"
+spawn-at-startup "blueman-applet"
+spawn-at-startup "iio-sensor-proxy"
 
-# Move active window to workspace
-bind = $mainMod SHIFT, 1, movetoworkspace, 1
-bind = $mainMod SHIFT, 2, movetoworkspace, 2
-bind = $mainMod SHIFT, 3, movetoworkspace, 3
-bind = $mainMod SHIFT, 4, movetoworkspace, 4
-bind = $mainMod SHIFT, 5, movetoworkspace, 5
+// Environment
+environment {
+    QT_AUTO_SCREEN_SCALE_FACTOR "1"
+    QT_QPA_PLATFORM "wayland;xcb"
+    QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
+    QT_QPA_PLATFORMTHEME "qt5ct"
+    
+    GDK_BACKEND "wayland,x11"
+    SDL_VIDEODRIVER "wayland"
+    CLUTTER_BACKEND "wayland"
+    
+    MOZ_ENABLE_WAYLAND "1"
+    MOZ_DBUS_REMOTE "1"
+    
+    XDG_CURRENT_DESKTOP "niri"
+    XDG_SESSION_TYPE "wayland"
+    XDG_SESSION_DESKTOP "niri"
+    
+    XCURSOR_SIZE "24"
+    XCURSOR_THEME "Catppuccin-Mocha-Dark-Cursors"
+    
+    GTK_THEME "Catppuccin-Mocha-Standard-Blue-Dark"
+}
 
-# Mouse bindings
-bindm = $mainMod, mouse:272, movewindow
-bindm = $mainMod, mouse:273, resizewindow
+// Keybindings
+binds {
+    // Basics
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+T { spawn "alacritty"; }
+    Mod+D { spawn "fuzzel"; }
+    Mod+E { spawn "nautilus"; }
+    Mod+B { spawn "firefox"; }
+    
+    // Session
+    Mod+Shift+E { spawn "wlogout"; }
+    Mod+Shift+Q { quit; }
+    Mod+Shift+P { power-off-monitors; }
+    
+    // Window management
+    Mod+Q { close-window; }
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    
+    // Focus
+    Mod+Left { focus-column-left; }
+    Mod+Right { focus-column-right; }
+    Mod+Up { focus-window-up; }
+    Mod+Down { focus-window-down; }
+    
+    Mod+H { focus-column-left; }
+    Mod+L { focus-column-right; }
+    Mod+K { focus-window-up; }
+    Mod+J { focus-window-down; }
+    
+    // Moving windows
+    Mod+Shift+Left { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+Up { move-window-up; }
+    Mod+Shift+Down { move-window-down; }
+    
+    // Workspaces
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    
+    // Screenshots
+    Print { screenshot; }
+    Mod+Print { screenshot-screen; }
+    Mod+Shift+Print { screenshot-window; }
+    
+    // Volume
+    XF86AudioRaiseVolume { spawn "pamixer" "-i" "5"; }
+    XF86AudioLowerVolume { spawn "pamixer" "-d" "5"; }
+    XF86AudioMute { spawn "pamixer" "-t"; }
+    
+    // Brightness
+    XF86MonBrightnessUp { spawn "brightnessctl" "set" "5%+"; }
+    XF86MonBrightnessDown { spawn "brightnessctl" "set" "5%-"; }
+}
 
-# Touch gestures
-bind = , edge:r:l, workspace, +1
-bind = , edge:l:r, workspace, -1
-HYPRCONF
+// Window rules
+window-rule {
+    match app-id="firefox"
+    default-column-width { proportion 0.66667; }
+}
 
-# Waybar configuration
+window-rule {
+    match app-id="org.gnome.Nautilus"
+    default-column-width { proportion 0.5; }
+}
+NIRICONF
+
+# Waybar configuration for Niri
 sudo -u lex mkdir -p /home/lex/.config/waybar
 cat > /home/lex/.config/waybar/config << 'WAYBARCONF'
 {
@@ -699,71 +777,78 @@ cat > /home/lex/.config/waybar/config << 'WAYBARCONF'
     "height": 35,
     "spacing": 4,
     
-    "modules-left": ["custom/arch", "hyprland/workspaces", "cpu", "memory", "temperature"],
-    "modules-center": ["clock"],
-    "modules-right": ["tray", "network", "bluetooth", "pulseaudio", "battery", "custom/power"],
+    "modules-left": ["custom/launcher", "cpu", "memory", "temperature", "disk"],
+    "modules-center": ["niri/workspaces"],
+    "modules-right": ["tray", "network", "bluetooth", "pulseaudio", "battery", "clock", "custom/power"],
     
-    "custom/arch": {
+    "custom/launcher": {
         "format": " ",
         "on-click": "fuzzel",
         "tooltip": false
     },
     
-    "hyprland/workspaces": {
-        "disable-scroll": true,
-        "all-outputs": true,
+    "niri/workspaces": {
         "format": "{icon}",
         "format-icons": {
-            "1": "1",
-            "2": "2",
-            "3": "3",
-            "4": "4",
-            "5": "5"
+            "1": "󰎤",
+            "2": "󰎧",
+            "3": "󰎪",
+            "4": "󰎭",
+            "5": "󰎱",
+            "default": "󰎤"
         }
     },
     
     "cpu": {
-        "format": " {usage}%",
+        "format": "󰻠 {usage}%",
+        "tooltip": true,
         "interval": 2
     },
     
     "memory": {
-        "format": " {}%",
+        "format": "󰍛 {percentage}%",
+        "tooltip-format": "{used:0.1f}G/{total:0.1f}G",
         "interval": 2
     },
     
     "temperature": {
         "thermal-zone": 0,
         "critical-threshold": 80,
-        "format": " {temperatureC}°C"
+        "format": "󰔏 {temperatureC}°C",
+        "format-critical": "󰔏 {temperatureC}°C"
     },
     
-    "clock": {
-        "format": "{:%H:%M}",
-        "format-alt": "{:%A, %B %d, %Y}",
-        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+    "disk": {
+        "interval": 30,
+        "format": "󰋊 {percentage_used}%",
+        "path": "/"
     },
     
     "network": {
-        "format-wifi": " {signalStrength}%",
-        "format-ethernet": " Connected",
-        "format-disconnected": "⚠ Disconnected",
+        "format-wifi": "󰖩 {signalStrength}%",
+        "format-ethernet": "󰈀 Connected",
+        "format-disconnected": "󰖪 Disconnected",
+        "tooltip-format": "{ifname}: {ipaddr}",
         "on-click": "nm-connection-editor"
     },
     
     "bluetooth": {
-        "format": " {status}",
-        "format-connected": " {num_connections}",
-        "on-click": "blueman-manager"
+        "format": "󰂯 {status}",
+        "format-connected": "󰂯 {num_connections}",
+        "format-disabled": "󰂲 Disabled",
+        "format-off": "󰂲 Off",
+        "on-click": "blueman-manager",
+        "tooltip": true
     },
     
     "pulseaudio": {
         "format": "{icon} {volume}%",
-        "format-muted": " Muted",
+        "format-muted": "󰝟 Muted",
         "format-icons": {
-            "default": ["", "", ""]
+            "default": ["󰕿", "󰖀", "󰕾"]
         },
-        "on-click": "pavucontrol"
+        "on-click": "pavucontrol",
+        "tooltip": false
     },
     
     "battery": {
@@ -772,171 +857,424 @@ cat > /home/lex/.config/waybar/config << 'WAYBARCONF'
             "critical": 15
         },
         "format": "{icon} {capacity}%",
-        "format-charging": " {capacity}%",
-        "format-plugged": " {capacity}%",
-        "format-icons": ["", "", "", "", ""]
+        "format-charging": "󰂄 {capacity}%",
+        "format-plugged": "󰚥 {capacity}%",
+        "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+        "tooltip": true
+    },
+    
+    "clock": {
+        "format": "󰥔 {:%H:%M}",
+        "format-alt": "󰃭 {:%A, %B %d, %Y}",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+    },
+    
+    "tray": {
+        "spacing": 10
     },
     
     "custom/power": {
-        "format": "⏻",
+        "format": "󰐥",
         "on-click": "wlogout",
         "tooltip": false
     }
 }
 WAYBARCONF
 
-# Waybar styles with Catppuccin
+# Waybar Catppuccin Mocha style
 cat > /home/lex/.config/waybar/style.css << 'WAYBARSTYLE'
+@define-color base   #1e1e2e;
+@define-color mantle #181825;
+@define-color crust  #11111b;
+
+@define-color text     #cdd6f4;
+@define-color subtext0 #a6adc8;
+@define-color subtext1 #bac2de;
+
+@define-color surface0 #313244;
+@define-color surface1 #45475a;
+@define-color surface2 #585b70;
+
+@define-color overlay0 #6c7086;
+@define-color overlay1 #7f849c;
+@define-color overlay2 #9399b2;
+
+@define-color blue      #89b4fa;
+@define-color lavender  #b4befe;
+@define-color sapphire  #74c7ec;
+@define-color sky       #89dceb;
+@define-color teal      #94e2d5;
+@define-color green     #a6e3a1;
+@define-color yellow    #f9e2af;
+@define-color peach     #fab387;
+@define-color maroon    #eba0ac;
+@define-color red       #f38ba8;
+@define-color mauve     #cba6f7;
+@define-color pink      #f5c2e7;
+@define-color flamingo  #f2cdcd;
+@define-color rosewater #f5e0dc;
+
 * {
-    font-family: "JetBrainsMono Nerd Font";
+    font-family: "JetBrainsMono Nerd Font", "Font Awesome 6 Free";
     font-size: 14px;
+    font-weight: bold;
 }
 
 window#waybar {
-    background: rgba(30, 30, 46, 0.9);
-    color: #cdd6f4;
-    border-bottom: 3px solid rgba(137, 180, 250, 0.5);
+    background: alpha(@base, 0.9);
+    color: @text;
+    border-bottom: 3px solid alpha(@sapphire, 0.5);
 }
 
-#custom-arch {
-    background: #89b4fa;
-    color: #1e1e2e;
+#custom-launcher {
+    background: @blue;
+    color: @base;
     padding: 0 15px;
     margin: 5px 0 5px 5px;
     border-radius: 10px;
 }
 
 #workspaces button {
-    padding: 0 10px;
-    color: #a6adc8;
-    margin: 5px 2px;
+    padding: 0 8px;
+    color: @subtext0;
+    background: transparent;
     border-radius: 10px;
+    margin: 5px 2px;
 }
 
 #workspaces button:hover {
-    background: rgba(137, 180, 250, 0.2);
-    color: #cdd6f4;
+    background: alpha(@surface0, 0.5);
+    color: @text;
 }
 
 #workspaces button.active {
-    background: #89b4fa;
-    color: #1e1e2e;
+    background: @sapphire;
+    color: @base;
 }
 
-#cpu, #memory, #temperature, #network, #bluetooth, 
-#pulseaudio, #battery, #clock, #tray, #custom-power {
+#cpu,
+#memory,
+#temperature,
+#disk,
+#network,
+#bluetooth,
+#pulseaudio,
+#battery,
+#clock,
+#tray {
     padding: 0 10px;
     margin: 5px 2px;
-    background: rgba(49, 50, 68, 0.8);
+    background: alpha(@surface0, 0.8);
     border-radius: 10px;
+    color: @text;
 }
 
-#battery.warning {
-    background: #f9e2af;
-    color: #1e1e2e;
+#temperature.critical {
+    background: @red;
+    color: @base;
 }
 
-#battery.critical {
-    background: #f38ba8;
-    color: #1e1e2e;
+#battery.warning:not(.charging) {
+    background: @yellow;
+    color: @base;
+}
+
+#battery.critical:not(.charging) {
+    background: @red;
+    color: @base;
     animation: blink 0.5s linear infinite alternate;
 }
 
+#network.disconnected {
+    background: alpha(@surface0, 0.8);
+    color: @red;
+}
+
+#pulseaudio.muted {
+    background: alpha(@surface0, 0.8);
+    color: @yellow;
+}
+
 #custom-power {
-    background: #f38ba8;
-    color: #1e1e2e;
+    background: @red;
+    color: @base;
     padding: 0 12px;
-    margin-right: 5px;
+    margin: 5px 5px 5px 2px;
+    border-radius: 10px;
 }
 
 @keyframes blink {
     to {
-        background: #1e1e2e;
-        color: #f38ba8;
+        background: @base;
+        color: @red;
     }
+}
+
+tooltip {
+    background: @base;
+    border: 2px solid @sapphire;
+    border-radius: 10px;
+}
+
+tooltip label {
+    color: @text;
 }
 WAYBARSTYLE
 
-# Touch gestures configuration
-cat > /home/lex/.config/touchegg/touchegg.conf << 'TOUCHEGG'
-<touchégg>
-  <settings>
-    <property name="animation_delay">150</property>
-    <property name="action_execute_threshold">10</property>
-    <property name="color">auto</property>
-    <property name="borderColor">auto</property>
-  </settings>
-  
-  <application name="All">
-    <gesture type="SWIPE" fingers="3" direction="UP">
-      <action type="SEND_KEYS">
-        <keys>Super+S</keys>
-      </action>
-    </gesture>
-    
-    <gesture type="SWIPE" fingers="3" direction="DOWN">
-      <action type="SEND_KEYS">
-        <keys>Super+S</keys>
-      </action>
-    </gesture>
-    
-    <gesture type="SWIPE" fingers="3" direction="LEFT">
-      <action type="SEND_KEYS">
-        <keys>Control+Alt+Right</keys>
-      </action>
-    </gesture>
-    
-    <gesture type="SWIPE" fingers="3" direction="RIGHT">
-      <action type="SEND_KEYS">
-        <keys>Control+Alt+Left</keys>
-      </action>
-    </gesture>
-    
-    <gesture type="PINCH" fingers="2" direction="IN">
-      <action type="SEND_KEYS">
-        <keys>Control+minus</keys>
-      </action>
-    </gesture>
-    
-    <gesture type="PINCH" fingers="2" direction="OUT">
-      <action type="SEND_KEYS">
-        <keys>Control+plus</keys>
-      </action>
-    </gesture>
-  </application>
-</touchégg>
-TOUCHEGG
+# GTK2 configuration
+cat > /home/lex/.gtkrc-2.0 << 'GTK2RC'
+gtk-theme-name="Catppuccin-Mocha-Standard-Blue-Dark"
+gtk-icon-theme-name="Papirus-Dark"
+gtk-font-name="Noto Sans 11"
+gtk-cursor-theme-name="Catppuccin-Mocha-Dark-Cursors"
+gtk-cursor-theme-size=24
+gtk-toolbar-style=GTK_TOOLBAR_BOTH
+gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
+gtk-button-images=1
+gtk-menu-images=1
+gtk-enable-event-sounds=0
+gtk-enable-input-feedback-sounds=0
+gtk-xft-antialias=1
+gtk-xft-hinting=1
+gtk-xft-hintstyle="hintslight"
+gtk-xft-rgba="rgb"
+GTK2RC
 
-# GTK settings with scaling
+# GTK3 configuration
 sudo -u lex mkdir -p /home/lex/.config/gtk-3.0
-cat > /home/lex/.config/gtk-3.0/settings.ini << 'GTKCONF'
+cat > /home/lex/.config/gtk-3.0/settings.ini << 'GTK3INI'
 [Settings]
 gtk-theme-name=Catppuccin-Mocha-Standard-Blue-Dark
 gtk-icon-theme-name=Papirus-Dark
-gtk-cursor-theme-name=Catppuccin-Mocha-Dark-Cursors
 gtk-font-name=Noto Sans 11
+gtk-cursor-theme-name=Catppuccin-Mocha-Dark-Cursors
 gtk-cursor-theme-size=24
-gtk-application-prefer-dark-theme=1
+gtk-toolbar-style=GTK_TOOLBAR_BOTH
+gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
+gtk-button-images=1
+gtk-menu-images=1
+gtk-enable-event-sounds=0
+gtk-enable-input-feedback-sounds=0
 gtk-xft-antialias=1
 gtk-xft-hinting=1
 gtk-xft-hintstyle=hintslight
 gtk-xft-rgba=rgb
-GTKCONF
+gtk-application-prefer-dark-theme=1
+GTK3INI
 
-# Environment variables for scaling
+# GTK4 configuration
+sudo -u lex mkdir -p /home/lex/.config/gtk-4.0
+ln -sf /usr/share/themes/Catppuccin-Mocha-Standard-Blue-Dark/gtk-4.0/assets /home/lex/.config/gtk-4.0/
+ln -sf /usr/share/themes/Catppuccin-Mocha-Standard-Blue-Dark/gtk-4.0/gtk.css /home/lex/.config/gtk-4.0/
+ln -sf /usr/share/themes/Catppuccin-Mocha-Standard-Blue-Dark/gtk-4.0/gtk-dark.css /home/lex/.config/gtk-4.0/
+
+# Qt5 configuration
+sudo -u lex mkdir -p /home/lex/.config/qt5ct
+cat > /home/lex/.config/qt5ct/qt5ct.conf << 'QT5CT'
+[Appearance]
+color_scheme_path=/usr/share/qt5ct/colors/Catppuccin-Mocha.conf
+custom_palette=false
+icon_theme=Papirus-Dark
+standard_dialogs=gtk3
+style=kvantum-dark
+
+[Fonts]
+fixed=@Variant(\0\0\0@\0\0\0\x1e\0J\0\x65\0t\0\x42\0r\0\x61\0i\0n\0s\0M\0o\0n\0o\0 \0N\0\x65\0r\0\x64@&\0\0\0\0\0\0\xff\xff\xff\xff\x5\x1\0\x32\x10)
+general=@Variant(\0\0\0@\0\0\0\x12\0N\0o\0t\0o\0 \0S\0\x61\0n\0s@&\0\0\0\0\0\0\xff\xff\xff\xff\x5\x1\0\x32\x10)
+
+[Interface]
+activate_item_on_single_click=0
+buttonbox_layout=0
+cursor_flash_time=1000
+dialog_buttons_have_icons=1
+double_click_interval=400
+gui_effects=@Invalid()
+keyboard_scheme=2
+menus_have_icons=true
+show_shortcuts_in_context_menus=true
+stylesheets=@Invalid()
+toolbutton_style=4
+underline_shortcut=1
+wheel_scroll_lines=3
+QT5CT
+
+# Qt6 configuration
+sudo -u lex mkdir -p /home/lex/.config/qt6ct
+cat > /home/lex/.config/qt6ct/qt6ct.conf << 'QT6CT'
+[Appearance]
+color_scheme_path=/usr/share/qt6ct/colors/Catppuccin-Mocha.conf
+custom_palette=false
+icon_theme=Papirus-Dark
+standard_dialogs=gtk3
+style=kvantum-dark
+
+[Fonts]
+fixed=@Variant(\0\0\0@\0\0\0\x1e\0J\0\x65\0t\0\x42\0r\0\x61\0i\0n\0s\0M\0o\0n\0o\0 \0N\0\x65\0r\0\x64@&\0\0\0\0\0\0\xff\xff\xff\xff\x5\x1\0\x32\x10)
+general=@Variant(\0\0\0@\0\0\0\x12\0N\0o\0t\0o\0 \0S\0\x61\0n\0s@&\0\0\0\0\0\0\xff\xff\xff\xff\x5\x1\0\x32\x10)
+QT6CT
+
+# Kvantum configuration for Qt theming
+sudo -u lex mkdir -p /home/lex/.config/Kvantum
+cat > /home/lex/.config/Kvantum/kvantum.kvconfig << 'KVANTUM'
+[General]
+theme=Catppuccin-Mocha-Blue
+KVANTUM
+
+# Environment variables for proper theming and scaling
 cat > /home/lex/.profile << 'PROFILE'
-export GDK_SCALE=1.5
-export GDK_DPI_SCALE=1
+# Display scaling
+export GDK_SCALE=1
+export GDK_DPI_SCALE=1.5
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
 export QT_SCALE_FACTOR=1.5
 export XCURSOR_SIZE=24
+
+# Wayland
 export MOZ_ENABLE_WAYLAND=1
-export QT_QPA_PLATFORM=wayland
-export XDG_CURRENT_DESKTOP=Hyprland
+export MOZ_DBUS_REMOTE=1
+export QT_QPA_PLATFORM="wayland;xcb"
+export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+export SDL_VIDEODRIVER=wayland
+export _JAVA_AWT_WM_NONREPARENTING=1
+export CLUTTER_BACKEND=wayland
+
+# Theming
+export QT_QPA_PLATFORMTHEME=qt5ct
+export GTK_THEME=Catppuccin-Mocha-Standard-Blue-Dark
+export XCURSOR_THEME=Catppuccin-Mocha-Dark-Cursors
+
+# XDG
+export XDG_CURRENT_DESKTOP=niri
 export XDG_SESSION_TYPE=wayland
-export XDG_SESSION_DESKTOP=Hyprland
+export XDG_SESSION_DESKTOP=niri
+
+# Editor
+export EDITOR=nvim
+export VISUAL=nvim
 PROFILE
 
+# Create .zprofile to source .profile
+cat > /home/lex/.zprofile << 'ZPROFILE'
+# Source profile for environment variables
+[[ -f ~/.profile ]] && . ~/.profile
+ZPROFILE
+
+# Alacritty configuration with Catppuccin theme
+sudo -u lex mkdir -p /home/lex/.config/alacritty
+cat > /home/lex/.config/alacritty/alacritty.toml << 'ALACRITTY'
+[window]
+padding = { x = 10, y = 10 }
+opacity = 0.95
+decorations = "None"
+
+[font]
+normal = { family = "JetBrainsMono Nerd Font", style = "Regular" }
+bold = { family = "JetBrainsMono Nerd Font", style = "Bold" }
+italic = { family = "JetBrainsMono Nerd Font", style = "Italic" }
+bold_italic = { family = "JetBrainsMono Nerd Font", style = "Bold Italic" }
+size = 12.0
+
+[colors.primary]
+background = "#1e1e2e"
+foreground = "#cdd6f4"
+dim_foreground = "#7f849c"
+bright_foreground = "#cdd6f4"
+
+[colors.cursor]
+text = "#1e1e2e"
+cursor = "#f5e0dc"
+
+[colors.vi_mode_cursor]
+text = "#1e1e2e"
+cursor = "#b4befe"
+
+[colors.search.matches]
+foreground = "#1e1e2e"
+background = "#a6adc8"
+
+[colors.search.focused_match]
+foreground = "#1e1e2e"
+background = "#a6e3a1"
+
+[colors.footer_bar]
+foreground = "#1e1e2e"
+background = "#a6adc8"
+
+[colors.hints.start]
+foreground = "#1e1e2e"
+background = "#f9e2af"
+
+[colors.hints.end]
+foreground = "#1e1e2e"
+background = "#a6adc8"
+
+[colors.selection]
+text = "#1e1e2e"
+background = "#f5e0dc"
+
+[colors.normal]
+black = "#45475a"
+red = "#f38ba8"
+green = "#a6e3a1"
+yellow = "#f9e2af"
+blue = "#89b4fa"
+magenta = "#f5c2e7"
+cyan = "#94e2d5"
+white = "#bac2de"
+
+[colors.bright]
+black = "#585b70"
+red = "#f38ba8"
+green = "#a6e3a1"
+yellow = "#f9e2af"
+blue = "#89b4fa"
+magenta = "#f5c2e7"
+cyan = "#94e2d5"
+white = "#a6adc8"
+
+[colors.dim]
+black = "#45475a"
+red = "#f38ba8"
+green = "#a6e3a1"
+yellow = "#f9e2af"
+blue = "#89b4fa"
+magenta = "#f5c2e7"
+cyan = "#94e2d5"
+white = "#bac2de"
+ALACRITTY
+
+# Apply Papirus folder colors
+sudo -u lex papirus-folders -C cat-mocha-blue
+
+# Create desktop entry for Niri
+cat > /usr/share/wayland-sessions/niri.desktop << 'NIRIDESKTOP'
+[Desktop Entry]
+Name=Niri
+Comment=A scrollable-tiling Wayland compositor
+Exec=niri-session
+Type=Application
+DesktopNames=niri
+Keywords=tiling;wayland;compositor;
+NIRIDESKTOP
+
+# Touch gestures configuration with libinput-gestures
+sudo -u lex mkdir -p /home/lex/.config
+cat > /home/lex/.config/libinput-gestures.conf << 'GESTURES'
+# Swipe gestures
+gesture swipe up 3 fuzzel
+gesture swipe down 3 wlogout
+gesture swipe left 3 niri msg action focus-workspace-down
+gesture swipe right 3 niri msg action focus-workspace-up
+
+# Pinch gestures
+gesture pinch in niri msg action zoom-out
+gesture pinch out niri msg action zoom-in
+GESTURES
+
+# Enable libinput-gestures
+sudo -u lex systemctl --user enable libinput-gestures.service
+
+# Fix permissions
 chown -R lex:lex /home/lex
 EOF
 }
@@ -955,11 +1293,11 @@ install_profile() {
     # Select packages
     case $profile in
         playground)
-            PACKAGES="$PACKAGES_PLAYGROUND"
+            PACKAGES="$PACKAGES_PLAYGROUND $PACKAGES_NIRI $PACKAGES_THEME"
             INSTALL_DESKTOP=true
             ;;
         stable)
-            PACKAGES="$PACKAGES_STABLE"
+            PACKAGES="$PACKAGES_STABLE $PACKAGES_NIRI $PACKAGES_THEME"
             INSTALL_DESKTOP=true
             ;;
         minimal)
@@ -967,7 +1305,7 @@ install_profile() {
             INSTALL_DESKTOP=false
             ;;
         gaming)
-            PACKAGES="$PACKAGES_GAMING"
+            PACKAGES="$PACKAGES_GAMING $PACKAGES_NIRI $PACKAGES_THEME"
             INSTALL_DESKTOP=true
             ;;
         emergency)
@@ -988,12 +1326,12 @@ install_profile() {
     # Configure system
     configure_system "$hostname" "$profile"
     
-    # Configure desktop if needed
+    # Configure Niri desktop if needed
     if [[ "$INSTALL_DESKTOP" == "true" ]]; then
-        configure_desktop "$profile"
+        configure_niri_desktop "$profile"
     fi
     
-    # Configure for gaming profile
+    # Gaming-specific optimizations
     if [[ "$profile" == "gaming" ]]; then
         arch-chroot /mnt /bin/bash << 'EOF'
 # Gaming optimizations
@@ -1007,7 +1345,7 @@ net.ipv4.tcp_keepalive_probes = 6
 SYSCTL
 
 # Enable gamemode
-systemctl --user enable gamemoded.service
+systemctl --user enable gamemoded.service 2>/dev/null || true
 EOF
     fi
     
@@ -1022,22 +1360,31 @@ Date: $(date)
 Kernel: $(ls /mnt/boot/vmlinuz-* | xargs basename)
 
 Features:
+- Niri scrollable tiling compositor
+- Complete Catppuccin theming (GTK2/3/4, Qt5/6)
 - Btrfs with automatic snapshots
 - ThinkPad X1 Yoga Gen 7 optimized
 - Touch screen and gestures support
+- HiDPI console font (Terminus 24pt)
 - Display scaling: ${DISPLAY_SCALE}x
 - Keyboard layouts: $XKBLAYOUT
-- NTFS partitions auto-mounted
+
+Shared Resources:
+- /mnt/shared-data - Shared between all Linux
+- /mnt/windows1 - Windows installation 1
+- /mnt/windows2 - Windows installation 2
+- /mnt/data - NTFS data partition
 
 Snapshot Management:
-- snapper list - Show snapshots
-- snapper create - Create manual snapshot
-- snapper rollback [number] - Rollback to snapshot
+- snapper list
+- snapper create --description "Manual snapshot"
+- snapper rollback [number]
+- Boot into snapshots via GRUB menu
 
-Access Windows partitions at:
-- /mnt/windows1
-- /mnt/windows2
-- /mnt/data
+Niri Commands:
+- niri msg - Send commands to running compositor
+- niri validate - Validate config file
+- Super+Shift+/ - Show all keybindings
 EOF
     
     # Unmount
